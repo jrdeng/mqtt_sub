@@ -2,6 +2,7 @@ use clap::Parser;
 use futures::{executor::block_on, stream::StreamExt};
 use paho_mqtt as mqtt;
 use std::{process, time::Duration};
+use uuid::Uuid;
 
 #[derive(Parser)]
 // #[command(disable_help_flag=true)]
@@ -22,6 +23,7 @@ fn main() {
     let host = cli.host;
     let port = cli.port;
     let server_uri = format!("tcp://{}:{}", host, port);
+    let client_id = Uuid::new_v4().to_string();
 
     let topics: Vec<&str> = cli.topics.iter().map(String::as_str).collect();
     if topics.is_empty() {
@@ -30,10 +32,10 @@ fn main() {
     }
     let qos = vec![1; topics.len()];
 
-    println!("Creating client to: {:?}", server_uri);
+    println!("Creating client to: {:?}, client_id: {:?}", server_uri, client_id);
     let create_opts = mqtt::CreateOptionsBuilder::new()
         .server_uri(&server_uri)
-        .client_id("client_id")
+        .client_id(&client_id)
         .finalize();
     let mut cli = mqtt::AsyncClient::new(create_opts).unwrap_or_else(|e| {
         println!("Error on creating client: {:?}", e);
